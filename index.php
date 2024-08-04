@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Containers</title>
     <style>
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -14,85 +26,132 @@
             height: 100vh;
             overflow: hidden; /* Prevent body scrolling */
         }
-        .search-container {
-            position: relative;
-            padding: 20px;
+
+        .header-container {
+            padding: 10px 20px;
             background-color: #f8f8f8;
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 1;
-        }
-        .dropdown {
-            position: absolute;
-            top: -50px; /* Adjust based on button height */
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
             gap: 10px;
-            z-index: 2;
+            position: relative;
         }
-        .dropdown-button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #333;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 600px; /* Limit width */
+            position: relative;
         }
-        .dropdown-button:hover {
-            background-color: #555;
-        }
+
         .search-container input {
-            width: 300px;
+            width: 100%;
             padding: 10px;
+            padding-right: 40px; /* Space for search icon */
             border: 1px solid #ccc;
             border-radius: 5px;
-            margin-bottom: 10px;
+            box-sizing: border-box;
+            margin-bottom: 10px; /* Space for suggestions */
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
+
+        .search-container input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
         .search-suggestions {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .search-suggestions .suggestion {
-            padding: 10px 15px;
-            background-color: #ddd;
+            gap: 5px;
+            background-color: #fff;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-height: 150px; /* Limited height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding: 5px;
+            box-sizing: border-box;
+            width: 100%;
+            display: none; /* Initially hidden */
         }
-        .container-wrapper {
+
+        .search-suggestions .suggestion {
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px; /* Smaller font size */
+            text-align: center;
+        }
+
+        .search-suggestions .suggestion:hover {
+            background-color: #ddd;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            fill: #007bff; /* Blue color for the icon */
+            animation: blink 1.5s infinite; /* Apply blinking effect */
+        }
+
+        main {
+            flex: 1;
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Prevent main container overflow */
+            background-color: #f0f0f0;
+        }
+
+        .container-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
             width: 100%;
             height: 100%;
             overflow-y: auto; /* Enable vertical scrolling */
             padding: 10px;
             box-sizing: border-box;
         }
+
         .container {
-            width: 300px;
-            margin: 10px;
-            padding: 20px;
-            background-color: #f0f0f0;
+            background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
             cursor: pointer;
-            box-sizing: border-box; /* Ensure padding and border are included in the container's width and height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            width: 100%; /* Full width */
+            height: 300px; /* Fixed height */
+            transition: transform 0.3s, box-shadow 0.3s;
         }
+
+        .container:hover {
+            transform: scale(1.05); /* Slightly enlarge on hover */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
+        }
+
         .container img {
             width: 100%;
-            height: auto; /* Maintain aspect ratio */
-            display: block;
+            height: 200px; /* Fixed height for images */
+            object-fit: cover; /* Ensure image covers the container */
+            border-radius: 8px;
         }
+
         .container h3 {
             margin: 10px 0 0;
         }
+
         .container p {
             margin: 5px 0 0;
         }
@@ -100,15 +159,18 @@
 </head>
 <body>
 
-<div class="search-container">
-    <div class="dropdown">
-        <button class="dropdown-button" id="prev-page">Previous</button>
-        <button class="dropdown-button" id="next-page">Next</button>
-    </div>
-    <input type="text" id="search-input" placeholder="Search...">
-    <div class="search-suggestions">
-        <div class="suggestion">Airbnb</div>
-        <div class="suggestion">Uber</div>
+<div class="header-container">
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search...">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+           <rect width="8" height="2" x="8.278" y="11.278" fill="#2583ef" transform="rotate(45.001 12.278 12.278)"></rect>
+           <circle cx="7" cy="7" r="7" fill="#36c8f6"></circle>
+           <path fill="#a2e4f4" d="M5.439,7.561c-0.586-0.586-0.586-1.536,0-2.121c0.586-0.586,1.536-0.586,2.121,0l1.414-1.414v0 c-1.367-1.367-3.583-1.367-4.95,0s-1.367,3.583,0,4.95L5.439,7.561z"></path>
+        </svg>
+        
+        <div class="search-suggestions" id="search-suggestions">
+            <!-- Suggestions will be dynamically inserted here -->
+        </div>
     </div>
 </div>
 
@@ -118,135 +180,94 @@
     </div>
 </main>
 
-<footer>
-    <p>&copy; 2024 Your Website</p>
-</footer>
-
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const containerWrapper = document.getElementById('container-wrapper');
-        const prevPageButton = document.getElementById('prev-page');
-        const nextPageButton = document.getElementById('next-page');
-        const searchInput = document.getElementById('search-input');
-        const suggestions = document.querySelectorAll('.suggestion');
-        let currentPage = 0;
-        const itemsPerPage = 6; // Number of containers per page
-        let data = [];
+document.addEventListener('DOMContentLoaded', () => {
+    const containerWrapper = document.getElementById('container-wrapper');
+    const searchInput = document.getElementById('search-input');
+    const searchSuggestions = document.getElementById('search-suggestions');
+    let data = [];
 
-        function fetchData() {
-            fetch('path_to_your_php_script.php')
-                .then(response => response.json())
-                .then(fetchedData => {
-                    data = fetchedData;
-                    displayPage();
-                })
-                .catch(error => console.error('Error:', error));
-        }
+    function fetchData() {
+        fetch('path_to_your_php_script.php')
+            .then(response => response.json())
+            .then(fetchedData => {
+                data = fetchedData;
+                displayFilteredData(data);
+            })
+            .catch(error => console.error('Error:', error));
+    }
 
-        function displayPage() {
-            containerWrapper.innerHTML = '';
-            const start = currentPage * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = data.slice(start, end);
+    function updateSuggestions(filteredData) {
+        searchSuggestions.innerHTML = '';
+        const suggestions = Array.from(new Set(filteredData.map(item => item.name))); // Unique suggestions
+        suggestions.forEach(name => {
+            const suggestion = document.createElement('div');
+            suggestion.className = 'suggestion';
+            suggestion.textContent = name;
+            suggestion.onclick = () => {
+                searchInput.value = name;
+                filterData(name);
+            };
+            searchSuggestions.appendChild(suggestion);
+        });
+    }
 
-            pageData.forEach(item => {
-                const container = document.createElement('div');
-                container.className = 'container';
-                container.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}">
-                    <h3>${item.name}</h3>
-                    <p>${item.description}</p>
-                `;
-                container.onclick = () => {
-                    window.location.href = `another_page.php?id=${item.id}`;
-                };
-                containerWrapper.appendChild(container);
-            });
+    function filterData(searchTerm) {
+        const searchTermLower = searchTerm.toLowerCase();
+        const filteredData = data.filter(item => 
+            item.name.toLowerCase().includes(searchTermLower) || 
+            item.description.toLowerCase().includes(searchTermLower)
+        );
+        updateSuggestions(filteredData);
+        displayFilteredData(filteredData);
+    }
 
-            // Adjust container sizes after images are loaded
-            adjustContainerSizes();
-        }
-
-        function adjustContainerSizes() {
-            // Find the tallest image
-            const images = document.querySelectorAll('.container img');
-            let maxHeight = 0;
-
-            images.forEach(img => {
-                img.onload = () => {
-                    const imgHeight = img.clientHeight;
-                    if (imgHeight > maxHeight) {
-                        maxHeight = imgHeight;
-                    }
-                    img.style.height = 'auto'; // Ensure image fits correctly
-                };
-            });
-
-            // Adjust container heights based on tallest image
-            setTimeout(() => { // Ensure this runs after all images are loaded
-                const containers = document.querySelectorAll('.container');
-                containers.forEach(container => {
-                    container.style.height = `${maxHeight + 40}px`; // +40 for padding and margins
-                });
-            }, 100); // Timeout ensures that all images are loaded
-        }
-
-        prevPageButton.addEventListener('click', () => {
-            if (currentPage > 0) {
-                currentPage--;
-                displayPage();
-            }
+    function displayFilteredData(filteredData) {
+        containerWrapper.innerHTML = '';
+        filteredData.forEach(item => {
+            const container = document.createElement('div');
+            container.className = 'container';
+            container.innerHTML = `
+                <img src="${item.image}" alt="${item.name}">
+                <h3>${item.name}</h3>
+                <p>${item.description}</p>
+            `;
+            container.onclick = () => {
+                window.location.href = `another_page.php?id=${item.id}`;
+            };
+            containerWrapper.appendChild(container);
         });
 
-        nextPageButton.addEventListener('click', () => {
-            if ((currentPage + 1) * itemsPerPage < data.length) {
-                currentPage++;
-                displayPage();
-            }
+        // Smooth scroll to the top of the containerWrapper
+        containerWrapper.scrollTo({
+            top: 0,
+            behavior: 'smooth'
         });
+    }
 
-        suggestions.forEach(suggestion => {
-            suggestion.addEventListener('click', () => {
-                searchInput.value = suggestion.textContent;
-                filterData(searchInput.value);
-            });
-        });
-
-        searchInput.addEventListener('input', () => {
-            filterData(searchInput.value);
-        });
-
-        function filterData(searchTerm) {
-            const searchTermLower = searchTerm.toLowerCase();
-            const filteredData = data.filter(item => 
-                item.name.toLowerCase().includes(searchTermLower) || 
-                item.description.toLowerCase().includes(searchTermLower)
-            );
-            displayFilteredData(filteredData);
-        }
-
-        function displayFilteredData(filteredData) {
-            containerWrapper.innerHTML = '';
-            filteredData.forEach(item => {
-                const container = document.createElement('div');
-                container.className = 'container';
-                container.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}">
-                    <h3>${item.name}</h3>
-                    <p>${item.description}</p>
-                `;
-                container.onclick = () => {
-                    window.location.href = `another_page.php?id=${item.id}`;
-                };
-                containerWrapper.appendChild(container);
-            });
-
-            // Adjust container sizes after images are loaded
-            adjustContainerSizes();
-        }
-
-        fetchData();
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value;
+        filterData(searchTerm);
     });
+
+    searchInput.addEventListener('focus', () => {
+        const searchTerm = searchInput.value;
+        if (!searchTerm) {
+            updateSuggestions(data);
+        }
+        searchSuggestions.style.display = 'flex'; // Show suggestions
+    });
+
+    searchInput.addEventListener('blur', () => {
+        // Delay hiding suggestions to allow for clicking on suggestions
+        setTimeout(() => {
+            searchSuggestions.style.display = 'none'; // Hide suggestions
+        },
+            200);
+    });
+
+    fetchData();
+});
 </script>
 
 </body>
