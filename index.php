@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let data = [];
 
     function fetchData() {
-        fetch('path_to_your_php_script.php')
+        fetch('fetchservices.php')
             .then(response => response.json())
             .then(fetchedData => {
                 data = fetchedData;
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>${item.description}</p>
             `;
             container.onclick = () => {
-                window.location.href = `another_page.php?id=${item.id}`;
+                window.location.href = `owners/index.php?id=${item.id}`;
             };
             containerWrapper.appendChild(container);
         });
